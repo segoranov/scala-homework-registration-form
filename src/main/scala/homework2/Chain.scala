@@ -16,18 +16,10 @@ sealed trait Chain[+A] {
 
   def ++[B >: A](right: Chain[B]): Chain[B] = Append(this, right)
 
-  private def foldLeftListified[B](initial: B)(f: (B, A) => B): B = ???
-
-  def foldLeft[B](initial: B)(f: (B, A) => B): B = {
-    val thisListified = this.listify
-
-    if (isEmpty) {
-      
-    }
-    thisListified match {
-      case Singleton(elem) => initial
-      case Append(Singleton(elem), rest) => f(initial, elem)
-    }
+  def foldLeft[B](initial: B)(f: (B, A) => B): B = this.listify match {
+    case Singleton(first) => f(initial, first)
+    case Append(Singleton(first), rest) => rest.foldLeft(f(initial, first))(f)
+    case _ => sys.error("Unexpected listify format")
   }
 
   def reduceLeft[B >: A](f: (B, A) => B): B = this.listify match {
@@ -36,22 +28,23 @@ sealed trait Chain[+A] {
     case _ => sys.error("Unexpected listify format")
   }
 
-  def map[B](f: A => B): Chain[B] = ???
+  def map[B](f: A => B): Chain[B] = this.listify match {
+    case Singleton(first) => Singleton(f(first))
+    case Append(Singleton(first), rest) => Append(Singleton(f(first)), rest.map(f))
+    case _ => sys.error("Unexpected listify format")
+  }
 
   def flatMap[B](f: A => Chain[B]): Chain[B] = ???
 
   def foreach(f: A => Unit): Unit = foldLeft(())((_, next) => f(next))
 
-  override def equals(that: Any): Boolean = that match {
-    case c: Chain[_] => this.hashCode == c.hashCode
-    case _ => false
-  }
+  override def equals(that: Any): Boolean = this.hashCode == that.hashCode
 
   override def hashCode: Int = foldLeft(0) {
     _ * 31 + _.hashCode
   }
 
-  override def toString: String = toList.mkString("Chain(", ",", ")")
+  // override def toString: String = toList.mkString("Chain(", ",", ")")
 
   def toList: List[A] = foldLeft(List.empty[A])((acc, next) => next :: acc).reverse
 
@@ -62,16 +55,11 @@ sealed trait Chain[+A] {
   def max[B >: A](implicit order: Ordering[B]): B = ???
 
   def listify: Chain[A] = {
-    if (isEmpty) {
-      this
-    }
-    else {
-      this match {
-        case Singleton(_) => this
-        case Append(Singleton(_), Singleton(_)) => this
-        case Append(Singleton(elem), right) => Append(Singleton(elem), right.listify)
-        case Append(Append(l, r), right) => Append(l.listify, Append(r.listify, right.listify)).listify
-      }
+    this match {
+      case Singleton(_) => this
+      case Append(Singleton(first), right) => Append(Singleton(first), right.listify)
+      case Append(Append(left, right1), right2) =>
+        Append(left.listify, Append(right1.listify, right2.listify)).listify
     }
   }
 }
@@ -102,6 +90,21 @@ object Chain {
 
 object MyTest {
   def main(args: Array[String]): Unit = {
-    println("Hello, world!")
+    println(Chain(1,2,3).listify)
+    println((Chain(1,2,3) ++ Chain(4,5,6)))
+    println((Chain(1,2,3) ++ Chain(4,5,6)).listify)
+    println(Chain(1,2) ++ Chain(3,4))
+    println(Chain(1,2,"asd","gosho", 3.14))
+
+    /*
+    TODO:
+    1. isEmpty - should I create another singleton object called EmptyChain in order to define this function?
+    2. How to test listify - 'equals' always returns true even if the structure is not the same?
+    3. Is my '++' (append) function ok - I think it is O(1) ?
+      4. Is 'equals' really that simple - override def equals(that: Any): Boolean = this.hashCode == that.hashCode
+    5. Is the work with the varargs OK inside 'apply'?
+    6. listify.tail ?? what is this order??
+    7. println(Chain(1,2,"asd","gosho", 3.14)) // dafuq, why does this work?? shouldn't they all be of the same type??
+    */
   }
 }
