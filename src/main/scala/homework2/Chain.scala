@@ -10,9 +10,9 @@ sealed trait Chain[+A] {
     case _ => false
   }
 
-  def +:[B >: A](front: B): Chain[B] = ???
+  def +:[B >: A](front: B): Chain[B] = Append(Singleton(front), this)
 
-  def :+[B >: A](back: B): Chain[B] = ???
+  def :+[B >: A](back: B): Chain[B] = Append(this, Singleton(back))
 
   def ++[B >: A](right: Chain[B]): Chain[B] = Append(this, right)
 
@@ -44,15 +44,15 @@ sealed trait Chain[+A] {
     _ * 31 + _.hashCode
   }
 
-  // override def toString: String = toList.mkString("Chain(", ",", ")")
+  override def toString: String = toList.mkString("Chain(", ",", ")")
 
   def toList: List[A] = foldLeft(List.empty[A])((acc, next) => next :: acc).reverse
 
   def toSet[B >: A]: Set[B] = foldLeft(Set.empty[B])((acc, next) => acc + next)
 
-  def min[B >: A](implicit order: Ordering[B]): B = ???
+  def min[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.max(_, _))
 
-  def max[B >: A](implicit order: Ordering[B]): B = ???
+  def max[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.min(_, _))
 
   def listify: Chain[A] = {
     this match {
@@ -90,21 +90,24 @@ object Chain {
 
 object MyTest {
   def main(args: Array[String]): Unit = {
-    println(Chain(1,2,3).listify)
-    println((Chain(1,2,3) ++ Chain(4,5,6)))
-    println((Chain(1,2,3) ++ Chain(4,5,6)).listify)
-    println(Chain(1,2) ++ Chain(3,4))
-    println(Chain(1,2,"asd","gosho", 3.14))
+    println(Chain(1, 2, 3).listify)
+    println((Chain(1, 2, 3) ++ Chain(4, 5, 6)))
+    println((Chain(1, 2, 3) ++ Chain(4, 5, 6)).listify)
+    println(Chain(1, 2) ++ Chain(3, 4))
+    println(Chain(1, 2, "asd", "gosho", 3.14))
 
     /*
-    TODO:
+    Questions:
     1. isEmpty - should I create another singleton object called EmptyChain in order to define this function?
+       ??? Забележете, че поради това, че е гарантирано наличието на поне е един елемент, не е нужно да връщаме Option тип ????
     2. How to test listify - 'equals' always returns true even if the structure is not the same?
     3. Is my '++' (append) function ok - I think it is O(1) ?
-      4. Is 'equals' really that simple - override def equals(that: Any): Boolean = this.hashCode == that.hashCode
+    4. Is 'equals' really that simple - override def equals(that: Any): Boolean = this.hashCode == that.hashCode
     5. Is the work with the varargs OK inside 'apply'?
-    6. listify.tail ?? what is this order??
-    7. println(Chain(1,2,"asd","gosho", 3.14)) // dafuq, why does this work?? shouldn't they all be of the same type??
+    6. println(Chain(1,2,"asd","gosho", 3.14)) // dafuq, why does this work?? shouldn't they all be of the same type??
+    7. Ordering - max gives 1 and min gives 10? How to fix?
+
+    TODO: Implement flatMap
     */
   }
 }
