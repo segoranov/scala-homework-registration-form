@@ -106,6 +106,7 @@ object MyTest {
     5. Is the work with the varargs OK inside 'apply'?
     6. println(Chain(1,2,"asd","gosho", 3.14)) // dafuq, why does this work?? shouldn't they all be of the same type??
     7. Ordering - max gives 1 and min gives 10? How to fix?
+    8. Ask about my SPO project - how to create executable so that I can run it on other server which does not have scalac and sbt? Also about the Future - why on 8 cores 8 Futures is not always faster than 7 Futures?
 
     TODO: Implement flatMap
     */
