@@ -10,13 +10,15 @@ class ChainTest extends FlatSpec with Matchers {
     Append(Chain(5, 1), Chain(5, 1)).head shouldEqual 5
   }
 
-  "equals" should "return true if chains are the same but their structures are different" in {
-    Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4))) shouldBe
-      Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Singleton(4))))
+  "equals" should "work correctly" in {
+    testChain shouldBe testChain
 
-    Append(Append(Append(Singleton(1), Singleton(2)), Singleton(3)), Singleton(4)) shouldBe
-      Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Singleton(4))))
-  }
+    Append(Append(Singleton(1), Singleton(2)), Append(Append(Singleton(2), Singleton(3)), Singleton(4))) should not be
+      Chain(1,2,3,4)
+
+    Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Singleton(4)))) shouldBe
+      Chain(1,2,3,4)
+}
 
   "listify" should "produce proper list-like structure" in {
     // base cases

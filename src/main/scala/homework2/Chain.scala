@@ -5,10 +5,7 @@ sealed trait Chain[+A] {
 
   def tail: Option[Chain[A]]
 
-  def isEmpty: Boolean = this match {
-    case Chain() => true
-    case _ => false
-  }
+  def isEmpty: Boolean = false
 
   def +:[B >: A](front: B): Chain[B] = Append(Singleton(front), this)
 
@@ -50,9 +47,9 @@ sealed trait Chain[+A] {
 
   def toSet[B >: A]: Set[B] = foldLeft(Set.empty[B])((acc, next) => acc + next)
 
-  def min[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.max(_, _))
+  def min[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.min(_, _))
 
-  def max[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.min(_, _))
+  def max[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.max(_, _))
 
   def listify: Chain[A] = {
     this match {
@@ -97,35 +94,11 @@ object MyTest {
     println(Chain(1, 2, "asd", "gosho", 3.14))
 
     /*
-    Questions:
-    1. isEmpty - should I create another singleton object called EmptyChain in order to define this function?
-       ??? Забележете, че поради това, че е гарантирано наличието на поне е един елемент, не е нужно да връщаме Option тип ????
-       answer: just false...
-
-    2. How to test listify - 'equals' always returns true even if the structure is not the same?
-
-    answer: define isListified method which checks whether the strucutre is listifed
-
-    3. Is my '++' (append) function ok - I think it is O(1) ?
-    answer: It's OK
-
-    4. Is 'equals' really that simple - override def equals(that: Any): Boolean = this.hashCode == that.hashCode
-
-    answer: NO!
-
-    5. Is the work with the varargs OK inside 'apply'?
-    answer: yes
-
-    6. println(Chain(1,2,"asd","gosho", 3.14)) // dafuq, why does this work?? shouldn't they all be of the same type??
-    7. Ordering - max gives 1 and min gives 10? How to fix?
-    answer: ... max and min are incorrect!
-
-
-    8. Ask about my SPO project - how to create executable so that I can run it on other server which does not have scalac and sbt? Also about the Future - why on 8 cores 8 Futures is not always faster than 7 Futures?
-
-    answer: scala executable jar
-
-    TODO: Implement flatMap
+    TODO:
+      Implement flatMap
+      Define isListified method in unit testswhich checks whether the strucutre is listifed
+      Define equals correctly - recursively check whether the elements are equal
+        (it's possible that two very different chains have the same hash code)
     */
   }
 }
