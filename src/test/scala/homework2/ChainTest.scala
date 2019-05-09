@@ -4,6 +4,12 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class ChainTest extends FlatSpec with Matchers {
 
+  def isListified[A](c: Chain[A]): Boolean = c match {
+    case Singleton(_) => true
+    case Append(Singleton(_), rest) => isListified(rest)
+    case _ => false
+  }
+
   val testChain = Chain(1, 2, 3) ++ Chain(4, 5, 6) ++ Chain(7, 8, 9) ++ Chain(10)
 
   "head" should "be 5" in {
@@ -13,25 +19,34 @@ class ChainTest extends FlatSpec with Matchers {
   "equals" should "work correctly" in {
     testChain shouldBe testChain
 
-    Append(Append(Singleton(1), Singleton(2)), Append(Append(Singleton(2), Singleton(3)), Singleton(4))) should not be
-      Chain(1,2,3,4)
-
     Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Singleton(4)))) shouldBe
-      Chain(1,2,3,4)
+      Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4)))
+
+    Chain(1, 4, 5, 2) should not be Chain(1, 5, 4, 2)
+
+    Chain(1, 2, 3, 4) should not be Chain(1, 2, 5, 3, 4)
+
+    Chain(1, 2) ++ Chain(3, 4) shouldBe Chain(1, 2, 3) ++ Chain(4)
 }
 
   "listify" should "produce proper list-like structure" in {
     // base cases
-    Singleton(1).listify shouldBe Singleton(1)
+    isListified(Singleton(1)) shouldBe true
 
-    Append(Singleton(1), Singleton(2)).listify shouldBe Append(Singleton(1), Singleton(2))
+    isListified(Append(Singleton(1), Singleton(2)).listify) shouldBe true
 
     // non-base cases
-    Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4))).listify shouldBe
-      Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Singleton(4))))
+    isListified(
+      Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4))).listify) shouldBe true
 
-    Append(Append(Singleton(1), Append(Singleton(2), Singleton(3))), Append(Singleton(4), Singleton(5))).listify shouldBe
-      Append(Singleton(1), Append(Singleton(2), Append(Singleton(3), Append(Singleton(4), Singleton(5)))))
+    isListified(
+      Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4)))) shouldBe false
+
+    isListified(Append(Append(Singleton(1), Append(Singleton(2), Singleton(3))),
+                Append(Singleton(4), Singleton(5))).listify) shouldBe true
+
+    isListified(Append(Append(Singleton(1), Append(Singleton(2), Singleton(3))),
+                Append(Singleton(4), Singleton(5)))) shouldBe false
   }
 
   "++" should "append two chains" in {

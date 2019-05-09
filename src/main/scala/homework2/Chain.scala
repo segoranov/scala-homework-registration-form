@@ -35,7 +35,10 @@ sealed trait Chain[+A] {
 
   def foreach(f: A => Unit): Unit = foldLeft(())((_, next) => f(next))
 
-  override def equals(that: Any): Boolean = this.hashCode == that.hashCode
+  override def equals(that: Any): Boolean = that match {
+    case c: Chain[A] => this.toList == c.toList
+    case _ => false
+  }
 
   override def hashCode: Int = foldLeft(0) {
     _ * 31 + _.hashCode
@@ -96,9 +99,6 @@ object MyTest {
     /*
     TODO:
       Implement flatMap
-      Define isListified method in unit testswhich checks whether the strucutre is listifed
-      Define equals correctly - recursively check whether the elements are equal
-        (it's possible that two very different chains have the same hash code)
     */
   }
 }
