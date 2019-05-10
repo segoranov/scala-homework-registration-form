@@ -10,4 +10,20 @@ class ValidatedTest extends FlatSpec with Matchers {
   it should "combine errors from invalid instances" in {
     Invalid(1).zip(Invalid(Chain(2, 3))) shouldEqual Invalid(Chain(1, 2, 3))
   }
+
+  "getOrElse" should "return default value" in {
+    Invalid(45).getOrElse(69) shouldBe 69
+  }
+
+  it should "return the valid value" in {
+    Valid(45).getOrElse(69) shouldBe 45
+  }
+
+  "orElse" should "return default value" in {
+    Invalid(45).orElse(Valid(69)) shouldBe Valid(69)
+  }
+
+  it should "return the object itself" in {
+    Valid(45).orElse(Valid(69)) shouldBe Valid(45)
+  }
 }
