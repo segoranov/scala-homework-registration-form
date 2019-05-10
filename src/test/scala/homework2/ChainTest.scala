@@ -77,4 +77,9 @@ class ChainTest extends FlatSpec with Matchers {
   "max" should "be 10" in {
     testChain.max shouldBe 10
   }
+
+  "flatMap" should "be Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" in {
+    Chain(Chain(1, 2, 3), Chain(4,5, Chain(6,7,8)), Chain(10)).flatMap(identity) shouldBe
+      Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
+  }
 }
