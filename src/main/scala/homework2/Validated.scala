@@ -17,10 +17,10 @@ sealed trait Validated[+E, +A] {
     this match {
       case Valid(a) => vb match {
         case Valid(b) => Valid(a, b)
-        case _ => throw new IllegalArgumentException("Both must be valid or invalid!")
+        case Invalid(vbErrors) => Invalid(vbErrors)
       }
       case Invalid(thisErrors) => vb match {
-        case Valid(b) => throw new IllegalArgumentException("Both must be valid or invalid!")
+        case Valid(_) => Invalid(thisErrors)
         case Invalid(vbErrors) => Invalid((thisErrors ++ vbErrors).listify)
       }
     }
@@ -28,7 +28,10 @@ sealed trait Validated[+E, +A] {
 
   def map[B](f: A => B): Validated[E, B] = ???
 
-  def map2[EE >: E, B, R](vb: Validated[EE, B])(f: (A, B) => R): Validated[EE, R] = ???
+  def map2[EE >: E, B, R](vb: Validated[EE, B])(f: (A, B) => R): Validated[EE, R] = this.zip(vb) match {
+    case Valid((a, b)) => Valid(f(a, b))
+    case Invalid(chainOfErrors) => Invalid(chainOfErrors)
+  }
 
   def flatMap[EE >: E, B](f: A => Validated[EE, B]): Validated[EE, B] = ???
 
@@ -41,6 +44,7 @@ sealed trait Validated[+E, +A] {
 }
 
 case class Valid[+A](a: A) extends Validated[Nothing, A]
+
 case class Invalid[+E](errors: Chain[E]) extends Validated[E, Nothing]
 
 object Invalid {
@@ -52,23 +56,27 @@ object Validated {
 
   implicit class ValidatedTuple2[EE, A, B](val tuple: (Validated[EE, A], Validated[EE, B])) extends AnyVal {
     def zip: Validated[EE, (A, B)] = ???
+
     def zipMap[R](f: (A, B) => R): Validated[EE, R] = ???
   }
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
     def zip: Validated[EE, (A, B, C)] = ???
+
     def zipMap[R](f: (A, B, C) => R): Validated[EE, R] = ???
   }
 
   implicit class ValidatedTuple4[EE, A, B, C, D]
   (val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C], Validated[EE, D])) extends AnyVal {
     def zip: Validated[EE, (A, B, C, D)] = ???
+
     def zipMap[R](f: (A, B, C, D) => R): Validated[EE, R] = ???
   }
 
   implicit class ValidatedTuple5[EE, A, B, C, D, E]
   (val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C], Validated[EE, D], Validated[EE, E])) extends AnyVal {
     def zip: Validated[EE, (A, B, C, D, E)] = ???
+
     def zipMap[R](f: (A, B, C, D, E) => R): Validated[EE, R] = ???
   }
 
