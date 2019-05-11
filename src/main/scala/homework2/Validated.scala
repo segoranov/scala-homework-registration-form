@@ -1,7 +1,5 @@
 package homework2
 
-import shapeless._
-
 sealed trait Validated[+E, +A] {
   def isValid: Boolean = this match {
     case Valid(_) => true
@@ -89,7 +87,15 @@ object Validated {
   }
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
-    def zip: Validated[EE, (A, B, C)] = ???
+    def zip: Validated[EE, (A, B, C)] = ???/* TODO: {
+      if (tuple.productIterator.exists(p => !p.asInstanceOf[Validated[EE, Any]].isValid)) {
+        tuple.productIterator.flatMap {
+          case _: Invalid[EE] => None
+          case other => Some(other)
+        }.reduceLeft((a, b) => a.asInstanceOf[Valid].zip(_))
+      }
+    }
+    */
 
     def zipMap[R](f: (A, B, C) => R): Validated[EE, R] = ???
   }
