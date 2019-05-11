@@ -27,7 +27,7 @@ class ChainTest extends FlatSpec with Matchers {
     Chain(1, 2, 3, 4) should not be Chain(1, 2, 5, 3, 4)
 
     Chain(1, 2) ++ Chain(3, 4) shouldBe Chain(1, 2, 3) ++ Chain(4)
-}
+  }
 
   "listify" should "produce proper list-like structure" in {
     // base cases
@@ -43,10 +43,10 @@ class ChainTest extends FlatSpec with Matchers {
       Append(Append(Singleton(1), Singleton(2)), Append(Singleton(3), Singleton(4)))) shouldBe false
 
     isListified(Append(Append(Singleton(1), Append(Singleton(2), Singleton(3))),
-                Append(Singleton(4), Singleton(5))).listify) shouldBe true
+      Append(Singleton(4), Singleton(5))).listify) shouldBe true
 
     isListified(Append(Append(Singleton(1), Append(Singleton(2), Singleton(3))),
-                Append(Singleton(4), Singleton(5)))) shouldBe false
+      Append(Singleton(4), Singleton(5)))) shouldBe false
   }
 
   "++" should "append two chains" in {
@@ -61,6 +61,11 @@ class ChainTest extends FlatSpec with Matchers {
     testChain.map(_ + 1) shouldBe Chain(2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
   }
 
+  it should "produce chain of chains" in {
+    testChain.map(elem => Chain(elem)) shouldBe
+      Chain(Chain(1), Chain(2), Chain(3), Chain(4), Chain(5), Chain(6), Chain(7), Chain(8), Chain(9), Chain(10))
+  }
+
   "+:" should "add element at the beginning of the chain" in {
     testChain.+:(69) shouldBe Chain(69, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
   }
@@ -68,7 +73,6 @@ class ChainTest extends FlatSpec with Matchers {
   ":+" should "add element at the end of the chain" in {
     testChain.:+(69) shouldBe Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 69)
   }
-
 
   "min" should "be 1" in {
     testChain.min shouldBe 1
@@ -78,8 +82,8 @@ class ChainTest extends FlatSpec with Matchers {
     testChain.max shouldBe 10
   }
 
-  "flatMap" should "be Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" in {
-    Chain(Chain(1, 2, 3), Chain(4,5, Chain(6,7,8)), Chain(10)).flatMap(identity) shouldBe
+  "flatMap" should "produce Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)" in {
+    Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10).flatMap(elem => Chain(elem)) shouldBe
       Chain(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
   }
 }

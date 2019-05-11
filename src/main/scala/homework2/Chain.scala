@@ -31,15 +31,7 @@ sealed trait Chain[+A] {
     case _ => sys.error("Unexpected listify format")
   }
 
-  def flatMap[B](f: A => Chain[B]): Chain[B] = ???/*{
-    val thisMappedAndListified = this.map(f).listify
-
-    thisMappedAndListified match {
-      case (head: Chain[B]) ++ tail => (head.flatMap(f) ++ tail.flatMap(f)).listify
-      case (head: B) +: tail => (head +: tail.flatMap(f)).listify
-      case (head: Chain[B]) =>
-    }
-  }*/
+  def flatMap[B](f: A => Chain[B]): Chain[B] = this.map(f).reduceLeft(_ ++ _)
 
   def foreach(f: A => Unit): Unit = foldLeft(())((_, next) => f(next))
 
@@ -94,19 +86,4 @@ object Chain {
 
   // Allows Chain to be used in pattern matching
   def unapplySeq[A](chain: Chain[A]): Option[Seq[A]] = Some(chain.toList)
-}
-
-object MyTest {
-  def main(args: Array[String]): Unit = {
-    println(Chain(1, 2, 3).listify)
-    println((Chain(1, 2, 3) ++ Chain(4, 5, 6)))
-    println((Chain(1, 2, 3) ++ Chain(4, 5, 6)).listify)
-    println(Chain(1, 2) ++ Chain(3, 4))
-    println(Chain(1, 2, "asd", "gosho", 3.14))
-
-    /*
-    TODO:
-      Implement flatMap
-    */
-  }
 }
