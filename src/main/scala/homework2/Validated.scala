@@ -26,18 +26,25 @@ sealed trait Validated[+E, +A] {
     }
   }
 
-  def map[B](f: A => B): Validated[E, B] = ???
-
-  def map2[EE >: E, B, R](vb: Validated[EE, B])(f: (A, B) => R): Validated[EE, R] = this.zip(vb) match {
-    case Valid((a, b)) => Valid(f(a, b))
-    case Invalid(chainOfErrors) => Invalid(chainOfErrors)
+  def map[B](f: A => B): Validated[E, B] = this match {
+    case Valid(a) => Valid(f(a))
+    case Invalid(errors) => Invalid(errors)
   }
 
-  def flatMap[EE >: E, B](f: A => Validated[EE, B]): Validated[EE, B] = ???
+  def map2[EE >: E, B, R](vb: Validated[EE, B])(f: (A, B) => R): Validated[EE, R] = this.zip(vb) match {
+    case Valid(pair) => Valid(f.tupled(pair))
+    case Invalid(errors) => Invalid(errors)
+  }
+
+  def flatMap[EE >: E, B](f: A => Validated[EE, B]): Validated[EE, B] = this.map(f) match {
+    case Valid(Valid(a)) => Valid(a)
+    case Invalid(errors) => Invalid(errors)
+    case Valid(Invalid(a)) => Invalid(a)
+  }
 
   def fold[B](invalid: Chain[E] => B, valid: A => B): B = this match {
-    case Invalid(errors) => invalid(errors)
     case Valid(a) => valid(a)
+    case Invalid(errors) => invalid(errors)
   }
 
   def foreach(f: A => Unit): Unit = fold(_ => (), f)

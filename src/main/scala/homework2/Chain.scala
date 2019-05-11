@@ -50,9 +50,9 @@ sealed trait Chain[+A] {
 
   def toSet[B >: A]: Set[B] = foldLeft(Set.empty[B])((acc, next) => acc + next)
 
-  def min[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.min(_, _))
+  def min[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.min)
 
-  def max[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.max(_, _))
+  def max[B >: A](implicit order: Ordering[B]): B = reduceLeft[B](order.max)
 
   def listify: Chain[A] = {
     this match {
