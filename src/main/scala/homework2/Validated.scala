@@ -1,5 +1,7 @@
 package homework2
 
+import shapeless._
+
 sealed trait Validated[+E, +A] {
   def isValid: Boolean = this match {
     case Valid(_) => true
@@ -59,12 +61,31 @@ object Invalid {
 }
 
 object Validated {
+
+  import shapeless._
+  import ops.tuple.FlatMapper
+
+  trait LowPriorityFlatten extends Poly1 {
+    implicit def default[T] = at[T](Tuple1(_))
+  }
+
+  // Used to flatten tuples. Example:
+  //  val t1 = (1, ((2, 3), 4))
+  //  val f1 = flatten(t1) // Inferred type is (Int, Int, Int, Int)
+  object flatten extends LowPriorityFlatten {
+    implicit def caseTuple[P <: Product](implicit lfm: Lazy[FlatMapper[P, flatten.type]]) =
+      at[P](lfm.value(_))
+  }
+
   def sequence[E, A](xs: List[Validated[E, A]]): Validated[E, List[A]] = ???
 
   implicit class ValidatedTuple2[EE, A, B](val tuple: (Validated[EE, A], Validated[EE, B])) extends AnyVal {
-    def zip: Validated[EE, (A, B)] = ???
+    def zip: Validated[EE, (A, B)] = tuple._1.zip(tuple._2)
 
-    def zipMap[R](f: (A, B) => R): Validated[EE, R] = ???
+    def zipMap[R](f: (A, B) => R): Validated[EE, R] = zip match {
+      case Invalid(errors) => Invalid(errors)
+      case Valid(t) => Valid(f.tupled(t))
+    }
   }
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
