@@ -78,14 +78,14 @@ object Validated {
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
     def zip: Validated[EE, (A, B, C)] = {
-      val iterableTuple = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]])
-      if (iterableTuple.exists(!_.isValid)) {
+      val invalidInstanceExists = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).exists(!_.isValid)
+
+      if (invalidInstanceExists) {
         // we need all Invalids and we have to ignore the Valids
-        val onlyInvalids = iterableTuple.collect {
+        val onlyInvalids = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).collect {
           case i@Invalid(_) => i
         }
 
-        // TODO: Make this shit fucking work!
         onlyInvalids.reduceLeft((a, b) => a.zip(b).asInstanceOf[Invalid[EE]])
       }
       else {
@@ -99,14 +99,44 @@ object Validated {
 
   implicit class ValidatedTuple4[EE, A, B, C, D]
   (val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C], Validated[EE, D])) extends AnyVal {
-    def zip: Validated[EE, (A, B, C, D)] = ???
+    def zip: Validated[EE, (A, B, C, D)] = {
+      val invalidInstanceExists = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).exists(!_.isValid)
+
+      if (invalidInstanceExists) {
+        // we need all Invalids and we have to ignore the Valids
+        val onlyInvalids = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).collect {
+          case i@Invalid(_) => i
+        }
+
+        onlyInvalids.reduceLeft((a, b) => a.zip(b).asInstanceOf[Invalid[EE]])
+      }
+      else {
+        // there are no Invalids, hence calling 'get' on each is safe
+        Valid((tuple._1.get, tuple._2.get, tuple._3.get, tuple._4.get))
+      }
+    }
 
     def zipMap[R](f: (A, B, C, D) => R): Validated[EE, R] = ???
   }
 
   implicit class ValidatedTuple5[EE, A, B, C, D, E]
   (val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C], Validated[EE, D], Validated[EE, E])) extends AnyVal {
-    def zip: Validated[EE, (A, B, C, D, E)] = ???
+    def zip: Validated[EE, (A, B, C, D, E)] = {
+      val invalidInstanceExists = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).exists(!_.isValid)
+
+      if (invalidInstanceExists) {
+        // we need all Invalids and we have to ignore the Valids
+        val onlyInvalids = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).collect {
+          case i@Invalid(_) => i
+        }
+
+        onlyInvalids.reduceLeft((a, b) => a.zip(b).asInstanceOf[Invalid[EE]])
+      }
+      else {
+        // there are no Invalids, hence calling 'get' on each is safe
+        Valid((tuple._1.get, tuple._2.get, tuple._3.get, tuple._4.get, tuple._5.get))
+      }
+    }
 
     def zipMap[R](f: (A, B, C, D, E) => R): Validated[EE, R] = ???
   }

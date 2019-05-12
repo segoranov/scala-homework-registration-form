@@ -54,11 +54,31 @@ class ValidatedTest extends FlatSpec with Matchers {
     Invalid(Chain(1, 2, 3)).flatMap(x => Valid(35, 40, 23)) shouldBe Invalid(Chain(1, 2, 3))
   }
 
-  "zip on ValidatedTuple3" should "become Valid(1,\"2\", 3.0)" in {
+  "zip on ValidatedTuple3" should "combine valid instances" in {
     (Valid(1), Valid("2"), Valid(3.0)).zip shouldBe Valid((1, "2", 3.0))
   }
 
-  it should "become Invalid(Chain(3, 129))" in {
-    (Valid(1), Invalid(Chain(3)), Invalid(Chain(129))).zip shouldBe Invalid(Chain(3, 129))
+  it should "combine errors from invalid instances" in {
+    (Valid(1), Invalid(Chain(2)), Invalid(Chain(3))).zip shouldBe Invalid(Chain(2, 3))
+    (Invalid(1), Invalid(Chain(2)), Invalid(Chain(3))).zip shouldBe Invalid(Chain(1, 2, 3))
   }
+
+  "zip on ValidatedTuple4" should "combine valid instances" in {
+    (Valid(1), Valid("2"), Valid(3.0), Valid(69)).zip shouldBe Valid((1, "2", 3.0, 69))
+  }
+
+  it should "combine errors from invalid instances" in {
+    (Valid(1), Invalid(Chain(2)), Valid(34), Invalid(Chain(3))).zip shouldBe Invalid(Chain(2, 3))
+    (Invalid(1), Invalid(Chain(2)), Invalid(Chain(3)), Invalid(4)).zip shouldBe Invalid(Chain(1, 2, 3, 4))
+  }
+
+  "zip on ValidatedTuple5" should "combine valid instances" in {
+    (Valid(1), Valid("2"), Valid(3.0), Valid(3.14), Valid(69)).zip shouldBe Valid((1, "2", 3.0, 3.14, 69))
+  }
+
+  it should "combine errors from invalid instances" in {
+    (Valid(1), Invalid(Chain(2)), Valid(34), Invalid(Chain(3)), Valid(3.14)).zip shouldBe Invalid(Chain(2, 3))
+    (Invalid(1), Invalid(Chain(2)), Invalid(Chain(3)), Invalid(4), Invalid(5)).zip shouldBe Invalid(Chain(1, 2, 3, 4, 5))
+  }
+
 }
