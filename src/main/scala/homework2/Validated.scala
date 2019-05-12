@@ -94,7 +94,10 @@ object Validated {
       }
     }
 
-    def zipMap[R](f: (A, B, C) => R): Validated[EE, R] = ???
+    def zipMap[R](f: (A, B, C) => R): Validated[EE, R] = this.zip match {
+      case Valid(tuple) => Valid(f.tupled(tuple))
+      case i@Invalid(_) => i
+    }
   }
 
   implicit class ValidatedTuple4[EE, A, B, C, D]
@@ -116,7 +119,10 @@ object Validated {
       }
     }
 
-    def zipMap[R](f: (A, B, C, D) => R): Validated[EE, R] = ???
+    def zipMap[R](f: (A, B, C, D) => R): Validated[EE, R] = this.zip match {
+      case Valid(tuple) => Valid(f.tupled(tuple))
+      case i@Invalid(_) => i
+    }
   }
 
   implicit class ValidatedTuple5[EE, A, B, C, D, E]
@@ -138,7 +144,10 @@ object Validated {
       }
     }
 
-    def zipMap[R](f: (A, B, C, D, E) => R): Validated[EE, R] = ???
+    def zipMap[R](f: (A, B, C, D, E) => R): Validated[EE, R] = this.zip match {
+      case Valid(tuple) => Valid(f.tupled(tuple))
+      case i@Invalid(_) => i
+    }
   }
 
   // ??? TODO: Add toValidated to Option instances

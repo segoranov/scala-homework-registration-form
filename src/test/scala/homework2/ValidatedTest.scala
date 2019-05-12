@@ -81,4 +81,14 @@ class ValidatedTest extends FlatSpec with Matchers {
     (Invalid(1), Invalid(Chain(2)), Invalid(Chain(3)), Invalid(4), Invalid(5)).zip shouldBe Invalid(Chain(1, 2, 3, 4, 5))
   }
 
+  "zipMap on ValidatedTuple" should "be the same as zip when invalid instances exist" in {
+    (Valid(1), Invalid(Chain(2)), Valid(34), Invalid(Chain(3)), Valid(3.14))
+      .zipMap((_: Any, _: Any, _: Any, _: Any, _: Any) => 5) shouldBe
+      (Valid(1), Invalid(Chain(2)), Valid(34), Invalid(Chain(3)), Valid(3.14)).zip
+  }
+
+  it should "apply function to tuple properly" in {
+    (Valid(1), Valid("2"), Valid(3.0), Valid(3.14), Valid(69))
+      .zipMap((_: Any, _: Any, _: Any, _: Any, _: Any) => 23) shouldBe Valid(23)
+  }
 }
