@@ -127,12 +127,25 @@ object UserRegistration {
     }
   }
 
-  private def validateBirthYear(birthYear: String) = {
+  private def validateBirthYear(birthYear: String) =
     if (!isAllDigits(birthYear)) {
       Invalid(YearIsNotAnInteger)
     }
     else {
       Valid(birthYear.toInt)
     }
-  }
+
+  private def validateDate(birthDay: Int, birthMonth: Int, birthYear: Int) =
+    Date.applyOption(birthDay, birthMonth, birthYear) match {
+      case None => Invalid(InvalidDate(Date(birthDay, birthMonth, birthYear)))
+      case Some(date) => Valid(date)
+    }
+
+  private def validateBirthDayDate(date: Date) =
+    if (date.isInTheFutre) {
+      Invalid(BirthdayDateIsInTheFuture)
+    }
+    else {
+      Valid(date)
+    }
 }
