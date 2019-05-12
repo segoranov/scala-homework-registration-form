@@ -22,7 +22,7 @@ sealed trait Validated[+E, +A] {
     this match {
       case Valid(a) => vb match {
         case Valid(b) => Valid(a, b)
-        case Invalid(vbErrors) => Invalid(vbErrors)
+        case i@Invalid(_) => i
       }
       case Invalid(thisErrors) => vb match {
         case Valid(_) => Invalid(thisErrors)
@@ -33,17 +33,17 @@ sealed trait Validated[+E, +A] {
 
   def map[B](f: A => B): Validated[E, B] = this match {
     case Valid(a) => Valid(f(a))
-    case Invalid(errors) => Invalid(errors)
+    case i@Invalid(_) => i
   }
 
   def map2[EE >: E, B, R](vb: Validated[EE, B])(f: (A, B) => R): Validated[EE, R] = this.zip(vb) match {
     case Valid(pair) => Valid(f.tupled(pair))
-    case Invalid(errors) => Invalid(errors)
+    case i@Invalid(_) => i
   }
 
   def flatMap[EE >: E, B](f: A => Validated[EE, B]): Validated[EE, B] = this.map(f) match {
     case Valid(Valid(a)) => Valid(a)
-    case Invalid(errors) => Invalid(errors)
+    case i@Invalid(_) => i
     case Valid(Invalid(a)) => Invalid(a)
   }
 
@@ -65,21 +65,6 @@ object Invalid {
 
 object Validated {
 
-  import shapeless._
-  import ops.tuple.FlatMapper
-
-  trait LowPriorityFlatten extends Poly1 {
-    implicit def default[T] = at[T](Tuple1(_))
-  }
-
-  // Used to flatten tuples. Example:
-  //  val t1 = (1, ((2, 3), 4))
-  //  val f1 = flatten(t1) // Inferred type is (Int, Int, Int, Int)
-  object flatten extends LowPriorityFlatten {
-    implicit def caseTuple[P <: Product](implicit lfm: Lazy[FlatMapper[P, flatten.type]]) =
-      at[P](lfm.value(_))
-  }
-
   def sequence[E, A](xs: List[Validated[E, A]]): Validated[E, List[A]] = ???
 
   implicit class ValidatedTuple2[EE, A, B](val tuple: (Validated[EE, A], Validated[EE, B])) extends AnyVal {
@@ -97,12 +82,11 @@ object Validated {
       if (iterableTuple.exists(!_.isValid)) {
         // we need all Invalids and we have to ignore the Valids
         val onlyInvalids = iterableTuple.collect {
-          case i @ Invalid(_) => i
+          case i@Invalid(_) => i
         }
 
-        // TODO: Implement this if case - make it fucking work!
-        // onlyInvalids.reduceLeft(_.zip(_))
-        Valid((tuple._1.get, tuple._2.get, tuple._3.get))
+        // TODO: Make this shit fucking work!
+        onlyInvalids.reduceLeft((a, b) => a.zip(b).asInstanceOf[Invalid[EE]])
       }
       else {
         // there are no Invalids, hence calling 'get' on each is safe
