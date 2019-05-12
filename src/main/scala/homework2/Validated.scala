@@ -11,6 +11,11 @@ sealed trait Validated[+E, +A] {
     case _ => default
   }
 
+  def get[B >: A] = this match {
+    case Valid(a) => a
+    case _ => throw new IllegalAccessError("Called get on invalid Validated!")
+  }
+
   def orElse[F >: E, B >: A](default: => Validated[F, B]): Validated[F, B] = if (isValid) this else default
 
   def zip[EE >: E, B](vb: Validated[EE, B]): Validated[EE, (A, B)] = {
@@ -87,15 +92,22 @@ object Validated {
   }
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
-    def zip: Validated[EE, (A, B, C)] = ???/* TODO: {
-      if (tuple.productIterator.exists(p => !p.asInstanceOf[Validated[EE, Any]].isValid)) {
-        tuple.productIterator.flatMap {
-          case _: Invalid[EE] => None
+    def zip: Validated[EE, (A, B, C)] = ??? /*{
+      val iterableTuple = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]])
+      if (iterableTuple.exists(!_.isValid)) {
+        // we need all Invalids and we have to ignore the Valids
+        val onlyInvalids = iterableTuple.flatMap {
+          case _: Valid[A] | _: Valid[B] | _: Valid[C] => None
           case other => Some(other)
-        }.reduceLeft((a, b) => a.asInstanceOf[Valid].zip(_))
+        }.map(_.asInstanceOf[Invalid[EE]])
+
+        Invalid(onlyInvalids.reduceLeft(_.errors ++ _.errors))
       }
-    }
-    */
+      else {
+        // there are no Invalids, hence calling 'get' on each is safe
+        Valid((tuple._1.get, tuple._2.get, tuple._3.get))
+      }
+    }*/
 
     def zipMap[R](f: (A, B, C) => R): Validated[EE, R] = ???
   }
