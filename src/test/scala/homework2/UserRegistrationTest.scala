@@ -7,35 +7,6 @@ class UserRegistrationTest extends FlatSpec with Matchers {
 
   val today = Date(2019, 5, 4)
 
-  "An empty form" should "generate errors for the non optional fields" in {
-    val emptyForm = RegistrationForm("", "", "", "", "", "", "", "")
-
-    val validation = registerUser(Set.empty, today)(emptyForm)
-
-    validation.isValid shouldBe false
-
-    val Invalid(errors) = validation
-    val errorsSet = errors.toSet
-    val birthdayErrors = errorsSet.collectFirst {
-      case InvalidBirthdayDate(dateErrors) => dateErrors.toSet
-    }
-
-    errorsSet should have size 5
-
-    errorsSet should contain allOf(
-      NameIsEmpty,
-      InvalidEmail(""),
-      PasswordTooShort,
-      PasswordRequiresGreaterSymbolVariety
-    )
-
-    birthdayErrors shouldEqual Some(Set(
-      YearIsNotAnInteger(""),
-      MonthIsNotAnInteger(""),
-      DayIsNotAnInteger("")
-    ))
-  }
-
   "validation for birthdate" should "generate errors for day out of range" in {
     UserRegistration.validateBirthdayDate("2019", "11", "300", today) shouldBe
       Invalid(InvalidBirthdayDate(Chain(DayOutOfRange(300))))
@@ -134,5 +105,34 @@ class UserRegistrationTest extends FlatSpec with Matchers {
 
   it should "generate valid name" in {
     UserRegistration.validateName("Georgi Purvanov") shouldBe Valid("Georgi Purvanov")
+  }
+
+  "An empty form" should "generate errors for the non optional fields" in {
+    val emptyForm = RegistrationForm("", "", "", "", "", "", "", "")
+
+    val validation = registerUser(Set.empty, today)(emptyForm)
+
+    validation.isValid shouldBe false
+
+    val Invalid(errors) = validation
+    val errorsSet = errors.toSet
+    val birthdayErrors = errorsSet.collectFirst {
+      case InvalidBirthdayDate(dateErrors) => dateErrors.toSet
+    }
+
+    errorsSet should have size 5
+
+    errorsSet should contain allOf(
+      NameIsEmpty,
+      InvalidEmail(""),
+      PasswordTooShort,
+      PasswordRequiresGreaterSymbolVariety
+    )
+
+    birthdayErrors shouldEqual Some(Set(
+      YearIsNotAnInteger(""),
+      MonthIsNotAnInteger(""),
+      DayIsNotAnInteger("")
+    ))
   }
 }
