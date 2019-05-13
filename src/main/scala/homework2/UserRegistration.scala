@@ -84,7 +84,7 @@ object UserRegistration {
   }
 
   private[homework2] def validateEmail(email: String): Validated[RegistrationFormError, String] = {
-    if (email.matches("[0-9a-zA-Z-_]+@[0-9a-zA-Z-_]+")) {
+    if (email.matches("[0-9a-zA-Z-_.]+@[0-9a-zA-Z-_.]+")) {
       Valid(email)
     }
     else {

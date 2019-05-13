@@ -102,4 +102,27 @@ class UserRegistrationTest extends FlatSpec with Matchers {
     UserRegistration.validatePassword("12ab!", "12a!") shouldBe
       Invalid(Chain(PasswordsDoNotMatch, PasswordTooShort))
   }
+
+  "validation for email" should "generate error for invalid email" in {
+    UserRegistration.validateEmail("123") shouldBe
+      Invalid(InvalidEmail("123"))
+
+    UserRegistration.validateEmail("123@") shouldBe
+      Invalid(InvalidEmail("123@"))
+
+    UserRegistration.validateEmail("@123") shouldBe
+      Invalid(InvalidEmail("@123"))
+
+    UserRegistration.validateEmail("@") shouldBe
+      Invalid(InvalidEmail("@"))
+
+    UserRegistration.validateEmail("gos@ho@abv.bg") shouldBe
+      Invalid(InvalidEmail("gos@ho@abv.bg"))
+
+  }
+
+  it should "generate valid email" in {
+    UserRegistration.validateEmail("gosho_123@abv.bg") shouldBe Valid("gosho_123@abv.bg")
+  }
+
 }
