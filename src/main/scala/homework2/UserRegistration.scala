@@ -51,9 +51,26 @@ case class User(name: String,
 
 object UserRegistration {
   def registerUser(userCountryPostalCodeVerifier: String => Boolean, today: Date)
-                  (form: RegistrationForm): Validated[RegistrationFormError, User] = ???
+                  (form: RegistrationForm): Validated[RegistrationFormError, User] = ???/*{
+    (
+      validatePostalCode(userCountryPostalCodeVerifier, form.postalCode),
+      validateEmail(form.email),
+      validatePassword(form.password, form.passwordConfirmation),
+      validateName(form.name),
+      validateBirthDayDate(form.birthDay, form.birthMonth, form.birthYear)
+    ).zipMap(User.apply)
+  }*/
 
-  private def validateName(name: String) = {
+  private[homework2] def validatePostalCode(userCountryPostalCodeVerifier: String => Boolean)(postalCode: String) = {
+    if (userCountryPostalCodeVerifier(postalCode)) {
+      Valid(postalCode)
+    }
+    else {
+      Invalid(InvalidPostalCode(postalCode))
+    }
+  }
+
+  private[homework2] def validateName(name: String) = {
     if (name.isEmpty) {
       Invalid(NameIsEmpty)
     }
@@ -62,7 +79,7 @@ object UserRegistration {
     }
   }
 
-  private def validateEmail(email: String) = {
+  private[homework2] def validateEmail(email: String) = {
     if (email.matches("[0-9a-zA-Z-_]*@[0-9a-zA-Z-_]*")) {
       Valid(email)
     }
@@ -71,81 +88,158 @@ object UserRegistration {
     }
   }
 
-  private def validatePassword(password: String, passwordConfirmation: String) = {
+  private[homework2] def validatePassword(password: String, passwordConfirmation: String) = {
 
-    // TODO: Implement the below functions
-    def hasAtLeastOneSpecialSymbol(password: String): Boolean = ???
+    // -----------------
+    def validatePasswordHasGoodSymbolVariety(password: String) = {
+      def passwordHasGoodSymbolVariety(password: String) = {
+        // TODO: Implement the below functions
+        def hasAtLeastOneSpecialSymbol(password: String): Boolean = ???
 
-    def hasAtLeastOneDigit(password: String): Boolean = ???
+        def hasAtLeastOneDigit(password: String): Boolean = ???
 
-    def hasAtLeastOneCharacter(password: String): Boolean = ???
+        def hasAtLeastOneCharacter(password: String): Boolean = ???
 
-    def passwordHasGoodSymbolVariety(password: String) =
-      hasAtLeastOneCharacter(password) && hasAtLeastOneDigit(password) && hasAtLeastOneSpecialSymbol(password)
+        hasAtLeastOneCharacter(password) && hasAtLeastOneDigit(password) && hasAtLeastOneSpecialSymbol(password)
+      }
 
-    if (password.length < 8) {
-      Invalid(PasswordTooShort)
+      if (passwordHasGoodSymbolVariety(password)) {
+        Valid(password)
+      }
+      else {
+        Invalid(PasswordRequiresGreaterSymbolVariety)
+      }
     }
-    else if (!passwordHasGoodSymbolVariety(password)) {
-      Invalid(PasswordRequiresGreaterSymbolVariety)
+
+    // -----------------
+    def validatePasswordsMatching(password: String, passwordConfirmation: String) = {
+      if (password == passwordConfirmation) {
+        Valid(password)
+      }
+      else {
+        Invalid(PasswordsDoNotMatch)
+      }
     }
-    else if (password != passwordConfirmation) {
-      Invalid(PasswordsDoNotMatch)
+
+    // -----------------
+    def validatePasswordLength(password: String) = {
+      if (password.length >= 8) {
+        Valid(password)
+      }
+      else {
+        Invalid(PasswordTooShort)
+      }
     }
-    else {
-      Valid(PasswordUtils.hash(password))
-    }
+
+    // -----------------
+    (validatePasswordHasGoodSymbolVariety(password),
+      validatePasswordLength(password),
+      validatePasswordsMatching(password, passwordConfirmation)).zip
   }
 
-  private def isAllDigits(x: String) = x forall Character.isDigit
 
-  private def validateBirthDay(birthDay: String) = {
-    def isDayOutOfRange(birthDay: Int) = 1 <= birthDay && birthDay <= 31
+  private[homework2] def validateBirthDayDate(birthDay: String, birthMonth: String, birthYear: String) = {
+    def isAllDigits(x: String) = x forall Character.isDigit
 
-    if (!isAllDigits(birthDay)) {
-      Invalid(DayIsNotAnInteger)
+    // ----------------------------------
+    def validateBirthDay(birthDay: String) = {
+      def validateDayIsAnInteger(birthDay: String) = {
+        if (!isAllDigits(birthDay)) {
+          Invalid(DayIsNotAnInteger(birthDay))
+        }
+        else {
+          Valid(birthDay.toInt)
+        }
+      }
+
+      // -----------------
+      def validateDayIsInRange(birthDay: Int) = {
+        if (1 <= birthDay && birthDay <= 31) {
+          Valid(birthDay)
+        }
+        else {
+          Invalid(DayOutOfRange(birthDay))
+        }
+      }
+
+      // -----------------
+      validateDayIsAnInteger(birthDay) match {
+        case i@Invalid(_) => i
+        case Valid(day) => validateDayIsInRange(day) match {
+          case i@Invalid(_) => i
+          case v@Valid(_) => v
+        }
+      }
     }
-    else if (isDayOutOfRange(birthDay.toInt)) {
-      Invalid(DayOutOfRange)
+
+    // ----------------------------------
+    def validateBirthMonth(birthMonth: String) = {
+      def validateMonthIsAnInteger(birthMonth: String) = {
+        if (!isAllDigits(birthMonth)) {
+          Invalid(MonthIsNotAnInteger(birthMonth))
+        }
+        else {
+          Valid(birthMonth.toInt)
+        }
+      }
+
+      // -----------------
+      def validateMonthIsInRange(birthMonth: Int) = {
+        if (1 <= birthMonth && birthMonth <= 12) {
+          Valid(birthMonth)
+        }
+        else {
+          Invalid(MonthOutOfRange(birthMonth))
+        }
+      }
+
+      // -----------------
+      validateMonthIsAnInteger(birthMonth) match {
+        case i@Invalid(_) => i
+        case Valid(month) => validateMonthIsInRange(month) match {
+          case i@Invalid(_) => i
+          case v@Valid(_) => v
+        }
+      }
     }
-    else {
-      Valid(birthDay.toInt)
+
+    // ----------------------------------
+    def validateBirthYear(birthYear: String) =
+      if (!isAllDigits(birthYear)) {
+        Invalid(YearIsNotAnInteger(birthYear))
+      }
+      else {
+        Valid(birthYear.toInt)
+      }
+
+    // ----------------------------------
+    def validateDate(birthDay: String, birthMonth: String, birthYear: String) = {
+      (
+        validateBirthDay(birthDay),
+        validateBirthMonth(birthMonth),
+        validateBirthYear(birthYear)
+      ).zip match {
+        case i@Invalid(_) => i
+        case v@Valid(_) => {
+          Date.applyOption(birthDay.toInt, birthMonth.toInt, birthYear.toInt) match {
+            case None => Invalid(InvalidDate(Date(birthDay.toInt, birthMonth.toInt, birthYear.toInt)))
+            case Some(date) => Valid(date)
+          }
+        }
+      }
+    }
+
+    // ----------------------------------
+    validateDate(birthDay, birthMonth, birthYear) match {
+      case i@Invalid(_) => InvalidBirthdayDate(i.errors)
+      case Valid(date) => {
+        if (date.isInTheFutre) {
+          Invalid(BirthdayDateIsInTheFuture(date))
+        }
+        else {
+          Valid(date)
+        }
+      }
     }
   }
-
-  private def validateBirthMonth(birthMonth: String) = {
-    def isMonthOutOfRange(birthMonth: Int) = 1 <= birthMonth && birthMonth <= 12
-
-    if (!isAllDigits(birthMonth)) {
-      Invalid(MonthIsNotAnInteger)
-    }
-    else if (isMonthOutOfRange(birthMonth.toInt)) {
-      Invalid(MonthOutOfRange)
-    }
-    else {
-      Valid(birthMonth.toInt)
-    }
-  }
-
-  private def validateBirthYear(birthYear: String) =
-    if (!isAllDigits(birthYear)) {
-      Invalid(YearIsNotAnInteger)
-    }
-    else {
-      Valid(birthYear.toInt)
-    }
-
-  private def validateDate(birthDay: Int, birthMonth: Int, birthYear: Int) =
-    Date.applyOption(birthDay, birthMonth, birthYear) match {
-      case None => Invalid(InvalidDate(Date(birthDay, birthMonth, birthYear)))
-      case Some(date) => Valid(date)
-    }
-
-  private def validateBirthDayDate(date: Date) =
-    if (date.isInTheFutre) {
-      Invalid(BirthdayDateIsInTheFuture)
-    }
-    else {
-      Valid(date)
-    }
 }
