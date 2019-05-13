@@ -157,7 +157,8 @@ object UserRegistration {
     ).zipMap((a, _, _) => a)
   }
 
-  private[homework2] def validateBirthdayDate(birthYear: String, birthMonth: String, birthDay: String)
+  private[homework2] def validateBirthdayDate(birthYear: String, birthMonth: String, birthDay: String,
+                                              today: Date)
   : Validated[RegistrationFormError, String] = {
     def isAllDigits(x: String) = x forall Character.isDigit
 
@@ -253,7 +254,7 @@ object UserRegistration {
     validateDate(birthYear, birthMonth, birthDay) match {
       case i@Invalid(_) => Invalid(InvalidBirthdayDate(i.errors.asInstanceOf[Chain[DateError]])).asInstanceOf[Validated[RegistrationFormError, String]]
       case Valid(date) => {
-        if (date.isInTheFutre) {
+        if (date.isAfter(today)) {
           Invalid(BirthdayDateIsInTheFuture(date)).asInstanceOf[Validated[RegistrationFormError, String]]
         }
         else {
