@@ -55,7 +55,7 @@ class UserRegistrationTest extends FlatSpec with Matchers {
   it should "generate error for non-existing date" in {
     // year 2013 was not a leap year, hence february has only 28 days
     UserRegistration.validateBirthdayDate("2013", "02", "29") shouldBe
-      Invalid(InvalidBirthdayDate(Chain(InvalidDate(Date(2013,2,29)))))
+      Invalid(InvalidBirthdayDate(Chain(InvalidDate(Date(2013, 2, 29)))))
   }
 
   it should "generate error for birthday in the future" in {
@@ -65,6 +65,41 @@ class UserRegistrationTest extends FlatSpec with Matchers {
 
   it should "generate valid birhday" in {
     UserRegistration.validateBirthdayDate("2013", "02", "28") shouldBe
-      Valid(Date(2013,2,28))
+      Valid(Date(2013, 2, 28))
+  }
+
+  "validation for password" should "generate error for greater symbol variery required" in {
+    UserRegistration.validatePassword("12345678", "12345678") shouldBe
+      Invalid(PasswordRequiresGreaterSymbolVariety)
+  }
+
+  it should "generate errors for greater symbol variety and not enough length" in {
+    UserRegistration.validatePassword("1234567", "1234567") shouldBe
+      Invalid(Chain(PasswordTooShort, PasswordRequiresGreaterSymbolVariety))
+  }
+
+  it should "generate all possible errors for password" in {
+    UserRegistration.validatePassword("1234567", "123456") shouldBe
+      Invalid(Chain(PasswordsDoNotMatch,PasswordTooShort,PasswordRequiresGreaterSymbolVariety))
+  }
+
+  it should "generate valid password" in {
+    UserRegistration.validatePassword("1234567abcde!", "1234567abcde!") shouldBe
+      Valid("1234567abcde!")
+  }
+
+  it should "generate error for passwords do not match" in {
+    UserRegistration.validatePassword("1234567abcd!e", "1234567abcde!") shouldBe
+      Invalid(PasswordsDoNotMatch)
+  }
+
+  it should "generate error for password too short" in {
+    UserRegistration.validatePassword("12ab!", "12ab!") shouldBe
+      Invalid(PasswordTooShort)
+  }
+
+  it should "generate errors for password too short and passwords not matching" in {
+    UserRegistration.validatePassword("12ab!", "12a!") shouldBe
+      Invalid(Chain(PasswordsDoNotMatch, PasswordTooShort))
   }
 }

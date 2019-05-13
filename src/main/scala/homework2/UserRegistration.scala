@@ -99,13 +99,24 @@ object UserRegistration {
     def validatePasswordHasGoodSymbolVariety(password: String) = {
       def passwordHasGoodSymbolVariety(password: String) = {
         // TODO: Implement the below functions
-        def hasAtLeastOneSpecialSymbol(password: String): Boolean = ???
+        def hasAtLeastOneSpecialSymbol(password: String): Boolean = {
+          val ordinary=(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet
 
-        def hasAtLeastOneDigit(password: String): Boolean = ???
+          password exists (!ordinary.contains(_))
+        }
 
-        def hasAtLeastOneCharacter(password: String): Boolean = ???
+        def hasAtLeastOneDigit(password: String): Boolean = {
+          val digits = ('0' to '9').toSet
+          password exists (digits.contains(_))
+        }
 
-        hasAtLeastOneCharacter(password) && hasAtLeastOneDigit(password) && hasAtLeastOneSpecialSymbol(password)
+        def hasAtLeastOneLetter(password: String): Boolean = {
+          val letters = (('a' to 'z') ++ ('A' to 'Z')).toSet
+
+          password exists (letters.contains(_))
+        }
+
+        hasAtLeastOneLetter(password) && hasAtLeastOneDigit(password) && hasAtLeastOneSpecialSymbol(password)
       }
 
       if (passwordHasGoodSymbolVariety(password)) {
