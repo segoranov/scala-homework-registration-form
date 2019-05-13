@@ -10,7 +10,7 @@ class UserRegistrationTest extends FlatSpec with Matchers {
   "An empty form" should "generate errors for the non optional fields" in {
     val emptyForm = RegistrationForm("", "", "", "", "", "", "", "")
 
-    val validation = registerUser(Set.empty, Date(2019, 5, 4))(emptyForm)
+    val validation = registerUser(Set.empty, today)(emptyForm)
 
     validation.isValid shouldBe false
 
@@ -125,7 +125,7 @@ class UserRegistrationTest extends FlatSpec with Matchers {
   }
 
   it should "generate valid email" in {
-    UserRegistration.validateEmail("gosho_123@abv.bg") shouldBe Valid("gosho_123@abv.bg")
+    UserRegistration.validateEmail("gosho_123@abv.bg") shouldBe Valid(Email("gosho_123", "abv.bg"))
   }
 
   "validation for name" should "generate empty name error" in {
