@@ -51,17 +51,21 @@ case class User(name: String,
 
 object UserRegistration {
   def registerUser(userCountryPostalCodeVerifier: String => Boolean, today: Date)
-                  (form: RegistrationForm): Validated[RegistrationFormError, User] = ???/*{
-    (
-      validatePostalCode(userCountryPostalCodeVerifier, form.postalCode),
-      validateEmail(form.email),
-      validatePassword(form.password, form.passwordConfirmation),
-      validateName(form.name),
-      validateBirthDayDate(form.birthDay, form.birthMonth, form.birthYear)
-    ).zipMap(User.apply)
-  }*/
+                  (form: RegistrationForm): Validated[RegistrationFormError, User] = ???
 
-  private[homework2] def validatePostalCode(userCountryPostalCodeVerifier: String => Boolean)(postalCode: String) = {
+  /*{
+      (
+        validatePostalCode(userCountryPostalCodeVerifier, form.postalCode),
+        validateEmail(form.email),
+        validatePassword(form.password, form.passwordConfirmation),
+        validateName(form.name),
+        validateBirthdayDate(form.birthDay, form.birthMonth, form.birthYear)
+      ).zipMap(User.apply)
+    }*/
+
+  private[homework2] def validatePostalCode(userCountryPostalCodeVerifier: String => Boolean)
+                                           (postalCode: String)
+  : Validated[RegistrationFormError, String] = {
     if (userCountryPostalCodeVerifier(postalCode)) {
       Valid(postalCode)
     }
@@ -70,7 +74,7 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validateName(name: String) = {
+  private[homework2] def validateName(name: String): Validated[RegistrationFormError, String] = {
     if (name.isEmpty) {
       Invalid(NameIsEmpty)
     }
@@ -79,7 +83,7 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validateEmail(email: String) = {
+  private[homework2] def validateEmail(email: String): Validated[RegistrationFormError, String] = {
     if (email.matches("[0-9a-zA-Z-_]*@[0-9a-zA-Z-_]*")) {
       Valid(email)
     }
@@ -88,7 +92,8 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validatePassword(password: String, passwordConfirmation: String) = {
+  private[homework2] def validatePassword(password: String, passwordConfirmation: String)
+  : Validated[RegistrationFormError, String] = {
 
     // -----------------
     def validatePasswordHasGoodSymbolVariety(password: String) = {
@@ -112,7 +117,8 @@ object UserRegistration {
     }
 
     // -----------------
-    def validatePasswordsMatching(password: String, passwordConfirmation: String) = {
+    def validatePasswordsMatching(password: String, passwordConfirmation: String)
+    : Validated[RegistrationFormError, String] = {
       if (password == passwordConfirmation) {
         Valid(password)
       }
@@ -122,7 +128,8 @@ object UserRegistration {
     }
 
     // -----------------
-    def validatePasswordLength(password: String) = {
+    def validatePasswordLength(password: String)
+    : Validated[RegistrationFormError, String] = {
       if (password.length >= 8) {
         Valid(password)
       }
@@ -132,17 +139,19 @@ object UserRegistration {
     }
 
     // -----------------
-    (validatePasswordHasGoodSymbolVariety(password),
+    (
+      validatePasswordsMatching(password, passwordConfirmation),
       validatePasswordLength(password),
-      validatePasswordsMatching(password, passwordConfirmation)).zip
+      validatePasswordHasGoodSymbolVariety(password)
+    ).zipMap((a, _, _) => a)
   }
 
-
-  private[homework2] def validateBirthDayDate(birthDay: String, birthMonth: String, birthYear: String) = {
+  private[homework2] def validateBirthdayDate(birthYear: String, birthMonth: String, birthDay: String)
+  : Validated[RegistrationFormError, String] = {
     def isAllDigits(x: String) = x forall Character.isDigit
 
     // ----------------------------------
-    def validateBirthDay(birthDay: String) = {
+    def validateBirthDay(birthDay: String): Validated[RegistrationFormError, String] = {
       def validateDayIsAnInteger(birthDay: String) = {
         if (!isAllDigits(birthDay)) {
           Invalid(DayIsNotAnInteger(birthDay))
@@ -153,21 +162,21 @@ object UserRegistration {
       }
 
       // -----------------
-      def validateDayIsInRange(birthDay: Int) = {
+      def validateDayIsInRange(birthDay: Int): Validated[RegistrationFormError, Int] = {
         if (1 <= birthDay && birthDay <= 31) {
-          Valid(birthDay)
+          Valid(birthDay).asInstanceOf[Validated[RegistrationFormError, Int]]
         }
         else {
-          Invalid(DayOutOfRange(birthDay))
+          Invalid(DayOutOfRange(birthDay)).asInstanceOf[Validated[RegistrationFormError, Int]]
         }
       }
 
       // -----------------
       validateDayIsAnInteger(birthDay) match {
-        case i@Invalid(_) => i
+        case i@Invalid(_) => i.asInstanceOf[Validated[RegistrationFormError, String]]
         case Valid(day) => validateDayIsInRange(day) match {
           case i@Invalid(_) => i
-          case v@Valid(_) => v
+          case v@Valid(_) => v.asInstanceOf[Validated[RegistrationFormError, String]]
         }
       }
     }
@@ -213,16 +222,16 @@ object UserRegistration {
       }
 
     // ----------------------------------
-    def validateDate(birthDay: String, birthMonth: String, birthYear: String) = {
+    def validateDate(birthYear: String, birthMonth: String, birthDay: String) = {
       (
-        validateBirthDay(birthDay),
+        validateBirthYear(birthYear),
         validateBirthMonth(birthMonth),
-        validateBirthYear(birthYear)
+        validateBirthDay(birthDay)
       ).zip match {
         case i@Invalid(_) => i
         case v@Valid(_) => {
-          Date.applyOption(birthDay.toInt, birthMonth.toInt, birthYear.toInt) match {
-            case None => Invalid(InvalidDate(Date(birthDay.toInt, birthMonth.toInt, birthYear.toInt)))
+          Date.applyOption(birthYear.toInt, birthMonth.toInt, birthDay.toInt) match {
+            case None => Invalid(InvalidDate(Date(birthYear.toInt, birthMonth.toInt, birthDay.toInt)))
             case Some(date) => Valid(date)
           }
         }
@@ -230,14 +239,14 @@ object UserRegistration {
     }
 
     // ----------------------------------
-    validateDate(birthDay, birthMonth, birthYear) match {
-      case i@Invalid(_) => InvalidBirthdayDate(i.errors)
+    validateDate(birthYear, birthMonth, birthDay) match {
+      case i@Invalid(_) => Invalid(InvalidBirthdayDate(i.errors.asInstanceOf[Chain[DateError]])).asInstanceOf[Validated[RegistrationFormError, String]]
       case Valid(date) => {
         if (date.isInTheFutre) {
-          Invalid(BirthdayDateIsInTheFuture(date))
+          Invalid(BirthdayDateIsInTheFuture(date)).asInstanceOf[Validated[RegistrationFormError, String]]
         }
         else {
-          Valid(date)
+          Valid(date).asInstanceOf[Validated[RegistrationFormError, String]]
         }
       }
     }
