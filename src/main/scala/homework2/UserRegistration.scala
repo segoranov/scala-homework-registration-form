@@ -70,7 +70,10 @@ object UserRegistration {
   private[homework2] def validatePostalCode(userCountryPostalCodeVerifier: String => Boolean)
                                            (postalCode: String)
   : Validated[RegistrationFormError, Option[String]] = {
-    if (userCountryPostalCodeVerifier(postalCode)) {
+    if (postalCode.isEmpty) {
+      Valid(None)
+    }
+    else if (userCountryPostalCodeVerifier(postalCode)) {
       Valid(Some(postalCode))
     }
     else {
