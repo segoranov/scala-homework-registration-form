@@ -80,7 +80,7 @@ class UserRegistrationTest extends FlatSpec with Matchers {
 
   it should "generate all possible errors for password" in {
     UserRegistration.validatePassword("1234567", "123456") shouldBe
-      Invalid(Chain(PasswordsDoNotMatch,PasswordTooShort,PasswordRequiresGreaterSymbolVariety))
+      Invalid(Chain(PasswordsDoNotMatch, PasswordTooShort, PasswordRequiresGreaterSymbolVariety))
   }
 
   it should "generate valid password" in {
@@ -125,4 +125,11 @@ class UserRegistrationTest extends FlatSpec with Matchers {
     UserRegistration.validateEmail("gosho_123@abv.bg") shouldBe Valid("gosho_123@abv.bg")
   }
 
+  "validation for name" should "generate empty name error" in {
+    UserRegistration.validateName("") shouldBe Invalid(NameIsEmpty)
+  }
+
+  it should "generate valid name" in {
+    UserRegistration.validateName("Georgi Purvanov") shouldBe Valid("Georgi Purvanov")
+  }
 }
