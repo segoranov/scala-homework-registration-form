@@ -62,7 +62,7 @@ object UserRegistration {
       validateName(form.name),
       validateEmail(form.email),
       validatedPassword,
-      validateBirthdayDate(form.birthDay, form.birthMonth, form.birthYear, today),
+      validateBirthdayDate(form.birthYear, form.birthMonth, form.birthDay, today),
       validatePostalCode(userCountryPostalCodeVerifier)(form.postalCode)
     ).zipMap(User.apply)
   }

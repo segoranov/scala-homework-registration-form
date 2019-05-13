@@ -135,4 +135,55 @@ class UserRegistrationTest extends FlatSpec with Matchers {
       DayIsNotAnInteger("")
     ))
   }
+
+  "A form" should "generate errors for the password, email and birthdate" in {
+
+    val form = RegistrationForm(
+      "Gosho",
+      "goshogmail.com",
+      "12345678",
+      "1234567",
+      "2013",
+      "02",
+      "29",
+      "")
+
+    val validation = registerUser(Set.empty, today)(form)
+
+    validation.isValid shouldBe false
+
+    val Invalid(errors) = validation
+    val errorsSet = errors.toSet
+    val birthdayErrors = errorsSet.collectFirst {
+      case InvalidBirthdayDate(dateErrors) => dateErrors.toSet
+    }
+
+    errorsSet should have size 4
+
+    errorsSet should contain allOf(
+      InvalidEmail("goshogmail.com"),
+      PasswordRequiresGreaterSymbolVariety,
+      PasswordsDoNotMatch
+    )
+
+    birthdayErrors shouldEqual Some(Set(
+      InvalidDate(Date(2013, 2, 29))
+    ))
+  }
+
+  it should "generate valid user" in {
+    val form = RegistrationForm(
+      "Gosho",
+      "gosho@gmail.com",
+      "123456abc!",
+      "123456abc!",
+      "2013",
+      "02",
+      "28",
+      "")
+
+    val validation = registerUser(Set.empty, today)(form)
+
+    validation.isValid shouldBe true
+  }
 }
