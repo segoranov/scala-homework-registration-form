@@ -76,6 +76,10 @@ object Validated {
     }
   }
 
+  implicit class ValidatedOption[A](val option: Option[A]) extends AnyVal {
+    def toValidated[E](error: E): Validated[E, A] = ???
+  }
+
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
     def zip: Validated[EE, (A, B, C)] = {
       val invalidInstanceExists = tuple.productIterator.map(_.asInstanceOf[Validated[EE, Any]]).exists(!_.isValid)
