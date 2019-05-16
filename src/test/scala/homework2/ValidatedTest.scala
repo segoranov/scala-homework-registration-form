@@ -91,4 +91,14 @@ class ValidatedTest extends FlatSpec with Matchers {
     (Valid(1), Valid("2"), Valid(3.0), Valid(3.14), Valid(69))
       .zipMap((_: Any, _: Any, _: Any, _: Any, _: Any) => 23) shouldBe Valid(23)
   }
+
+  "toValidated" should "return Valid from Option" in {
+    import Validated._
+    Some(23).toValidated("Error!") shouldBe Valid(23)
+  }
+
+  it should "return Invalid from Option" in {
+    import Validated._
+    None.toValidated("Error!") shouldBe Invalid("Error!")
+  }
 }

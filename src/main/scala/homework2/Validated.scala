@@ -77,7 +77,10 @@ object Validated {
   }
 
   implicit class ValidatedOption[A](val option: Option[A]) extends AnyVal {
-    def toValidated[E](error: E): Validated[E, A] = ???
+    def toValidated[E](error: E): Validated[E, A] = option match {
+      case None => Invalid(error)
+      case Some(value) => Valid(value)
+    }
   }
 
   implicit class ValidatedTuple3[EE, A, B, C](val tuple: (Validated[EE, A], Validated[EE, B], Validated[EE, C])) extends AnyVal {
@@ -153,6 +156,4 @@ object Validated {
       case i@Invalid(_) => i
     }
   }
-
-  // ??? TODO: Add toValidated to Option instances
 }
