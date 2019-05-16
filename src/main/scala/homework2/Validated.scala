@@ -156,4 +156,5 @@ object Validated {
       case i@Invalid(_) => i
     }
   }
+
 }

@@ -28,7 +28,7 @@ object UserRegistrationApp {
     year <- promptInput("year:")
     month <- promptInput("month:")
     day <- promptInput("day:")
-  } yield(year, month, day)
+  } yield (year, month, day)
 
   def registrationOutput(userValidation: Validated[RegistrationFormError, User]): IO[Unit] = userValidation match {
     case Valid(user) => for {

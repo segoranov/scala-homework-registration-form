@@ -81,7 +81,7 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validateName(name: String): Validated[RegistrationFormError, String] = {
+  private[homework2] def validateName(name: String) = {
     if (name.isEmpty) {
       Invalid(NameIsEmpty)
     }
@@ -90,7 +90,7 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validateEmail(email: String): Validated[RegistrationFormError, Email] = {
+  private[homework2] def validateEmail(email: String) = {
     if (email.matches("[0-9a-zA-Z-_.]+@[0-9a-zA-Z-_.]+")) {
       val splitted = email.split("@")
       Valid(Email(splitted(0), splitted(1)))
@@ -100,8 +100,7 @@ object UserRegistration {
     }
   }
 
-  private[homework2] def validatePassword(password: String, passwordConfirmation: String)
-  : Validated[RegistrationFormError, String] = {
+  private[homework2] def validatePassword(password: String, passwordConfirmation: String) = {
 
     // -----------------
     def validatePasswordHasGoodSymbolVariety(password: String) = {
@@ -136,8 +135,7 @@ object UserRegistration {
     }
 
     // -----------------
-    def validatePasswordsMatching(password: String, passwordConfirmation: String)
-    : Validated[RegistrationFormError, String] = {
+    def validatePasswordsMatching(password: String, passwordConfirmation: String) = {
       if (password == passwordConfirmation) {
         Valid(password)
       }
@@ -147,8 +145,7 @@ object UserRegistration {
     }
 
     // -----------------
-    def validatePasswordLength(password: String)
-    : Validated[RegistrationFormError, String] = {
+    def validatePasswordLength(password: String) = {
       if (password.length >= 8) {
         Valid(password)
       }
@@ -166,8 +163,7 @@ object UserRegistration {
   }
 
   private[homework2] def validateBirthdayDate(birthYear: String, birthMonth: String, birthDay: String,
-                                              today: Date)
-  : Validated[RegistrationFormError, Date] = {
+                                              today: Date) = {
     def isNonEmptyStringWithDigitsOnly(x: String) = (!x.isEmpty) && (x forall Character.isDigit)
 
     // ----------------------------------
@@ -193,10 +189,10 @@ object UserRegistration {
 
       // -----------------
       validateDayIsAnInteger(birthDay) match {
-        case i@Invalid(_) => i.asInstanceOf[Validated[RegistrationFormError, String]]
+        case i@Invalid(_) => i
         case Valid(day) => validateDayIsInRange(day) match {
           case i@Invalid(_) => i
-          case v@Valid(_) => v.asInstanceOf[Validated[RegistrationFormError, String]]
+          case v@Valid(_) => v
         }
       }
     }
